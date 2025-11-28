@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day-Con : Daily Construction</title>
+    <style>
+        /* [Design System & CSS Variables] */
+        :root {
+            /* 브랜드 컬러를 신뢰감 주는 건설 전문 블루 톤으로 유지 */
+            --primary-color: #2563EB; 
+            --primary-hover: #1D4ED8;
+            --bg-color: #F3F4F6;
+            --card-bg: #FFFFFF;
+            --text-main: #1F2937;
+            --text-sub: #6B7280;
+            --border-color: #E5E7EB;
+            --success-color: #10B981;
+            --danger-color: #EF4444;
+            --font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+        }
+
+        /* [Reset & Base Styles] */
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: var(--font-family);
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            line-height: 1.6;
+        }
+
+        /* [Header] */
+        header {
+            background-color: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: var(--primary-color);
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .logo span { color: var(--text-main); }
+        .logo .subtitle {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-sub);
+            margin-left: 0.5rem;
+            padding-left: 0.5rem;
+            border-left: 2px solid var(--border-color);
+        }
+        .user-profile { font-size: 0.9rem; color: var(--text-sub); }
+
+        /* [Layout] */
+        .container {
+            max-width: 1024px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        /* [Dashboard Widget Section] */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .card h3 { font-size: 0.85rem; color: var(--text-sub); margin-bottom: 0.5rem; text-transform: uppercase; }
+        .card .value { font-size: 1.5rem; font-weight: 700; color: var(--text-main); }
+        .weather-info { display: flex; align-items: center; gap: 0.5rem; }
+
+        /* [Main Form Section] */
+        .form-section {
+            background: var(--card-bg);
+            border-radius: 16px;
+            padding: 2rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .section-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--bg-color);
+            padding-bottom: 0.5rem;
+        }
+
+        .input-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        @media (max-width: 768px) {
+            .input-group { grid-template-columns: 1fr; }
+            .logo .subtitle { display: none; } /* 모바일에서는 서브타이틀 숨김 */
+        }
+
+        .form-control { display: flex; flex-direction: column; gap: 0.5rem; }
+        label { font-size: 0.9rem; font-weight: 600; color: var(--text-main); }
+        input, select, textarea {
+            padding: 0.75rem;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+        textarea { resize: vertical; min-height: 100px; }
+
+        /* [File Upload] */
+        .upload-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 12px;
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+            background-color: #FAFAFA;
+        }
+        .upload-area:hover { border-color: var(--primary-color); background-color: #EFF6FF; }
+        .upload-icon { font-size: 2rem; margin-bottom: 0.5rem; }
+        .upload-text { color: var(--text-sub); font-size: 0.9rem; }
+
+        /* [Action Button] */
+        .btn-submit {
+            width: 100%;
+            padding: 1rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.3s;
+            margin-top: 1rem;
+        }
+        .btn-submit:hover { background-color: var(--primary-hover); }
+        .btn-submit:disabled { background-color: var(--text-sub); cursor: not-allowed; }
+
+        /* [Loading Modal] */
+        #loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.9);
+            z-index: 999;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+        .spinner {
+            width: 50px; height: 50px;
+            border: 5px solid var(--border-color);
+            border-top: 5px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 1rem;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    </style>
+</head>
+<body>
+
+    <!-- Header: Day-Con 브랜드 적용 -->
+    <header>
+        <div class="logo">
+            Day-<span>Con</span>
+            <div class="subtitle">Daily Construction</div>
+        </div>
+        <div class="user-profile">
+            👤 관리자: <strong>김광운 (건축 CM팀)</strong>
+        </div>
+    </header>
+
+    <div class="container">
+        
+        <!-- Dashboard Widgets -->
+        <div class="dashboard-grid">
+            <div class="card">
+                <h3>TODAY</h3>
+                <div class="value" id="current-date">-</div>
+            </div>
+            <div class="card">
+                <h3>WEATHER (OpenWeather)</h3>
+                <div class="value weather-info">
+                    <span id="weather-icon">☀️</span>
+                    <span id="weather-text">맑음 18°C</span>
+                </div>
+            </div>
+            <div class="card">
+                <h3>PROJECT D-DAY</h3>
+                <div class="value" style="color: var(--primary-color);">D-124</div>
+            </div>
+        </div>
+
+        <!-- Main Input Form -->
+        <section class="form-section">
+            <h2 class="section-title">📝 Day-Con 스마트 현장 리포트</h2>
+            
+            <!-- 1. 기본 정보 -->
+            <div class="input-group">
+                <div class="form-control">
+                    <label for="project_name">현장명 / 공사명</label>
+                    <input type="text" id="project_name" value="광운대 역세권 개발사업 A구역" readonly>
+                </div>
+                <div class="form-control">
+                    <label for="manager_name">작성자</label>
+                    <input type="text" id="manager_name" value="김광운" placeholder="이름 입력">
+                </div>
+            </div>
+
+            <!-- 2. 작업 정보 -->
+            <div class="input-group">
+                <div class="form-control">
+                    <label for="work_keyword">주요 작업명 (키워드)</label>
+                    <input type="text" id="work_keyword" placeholder="예: 3층 슬래브 타설, 갱폼 인양">
+                </div>
+                <div class="form-control">
+                    <label for="location">작업 위치 (구역/층)</label>
+                    <input type="text" id="location" placeholder="예: 101동 3F, Grid 4-5">
+                </div>
+            </div>
+
+            <div class="input-group">
+                <div class="form-control">
+                    <label for="workers">작업 인원 (직종별)</label>
+                    <input type="text" id="workers" placeholder="예: 목공 5명, 철근 4명, 보통인부 2명">
+                </div>
+                <div class="form-control">
+                    <label for="equipment">사용 장비</label>
+                    <input type="text" id="equipment" placeholder="예: 25톤 크레인 1대, 펌프카 1대">
+                </div>
+            </div>
+
+            <!-- 3. 자재 및 특이사항 -->
+            <div class="form-control" style="margin-bottom: 1.5rem;">
+                <label for="materials">입고/사용 자재</label>
+                <input type="text" id="materials" placeholder="예: 레미콘 25-24-150 30대, HD13 철근 5톤">
+            </div>
+
+            <div class="form-control" style="margin-bottom: 1.5rem;">
+                <label for="special_note">특이사항 및 위험요인 (음성입력 대체 가능)</label>
+                <textarea id="special_note" placeholder="현장 특이사항, 안전 사고 위험 요인, 민원 발생 등을 입력하세요."></textarea>
+            </div>
+
+            <!-- 4. 사진 업로드 (OCR/AI 분석용) -->
+            <div class="form-control" style="margin-bottom: 2rem;">
+                <label>현장 사진 (진척률 확인 및 OCR 분석용)</label>
+                <div class="upload-area" id="drop-zone">
+                    <div class="upload-icon">📸</div>
+                    <div class="upload-text">클릭하여 사진 업로드 또는 파일을 여기로 드래그하세요.<br>(Day-Con AI가 이미지를 분석하여 내용을 자동 보완합니다)</div>
+                    <input type="file" id="file-input" multiple style="display: none;">
+                </div>
+            </div>
+
+            <button type="button" class="btn-submit" onclick="register()">
+                ✨ AI 보고서 자동 생성 (Generate)
+            </button>
+        </section>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay">
+        <div class="spinner"></div>
+        <h3>Day-Con AI가 현장 데이터를 분석하고 있습니다...</h3>
+        <p>작업일지, 안전일지, 품질보고서를 생성 중입니다.</p>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // ============================================================
+        // [1] Configuration & Constants
+        // ============================================================
+        // 백엔드 API 주소 (현재 비워둠, 추후 실제 서버 주소 입력 필요)
+        const SERVER_URL = ""; 
+
+        // ============================================================
+        // [2] Helper Functions (UI Initialization)
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            // 오늘 날짜 자동 세팅
+            const today = new Date();
+            const dateStr = today.toISOString().split('T')[0];
+            document.getElementById('current-date').innerText = dateStr;
+
+            // 파일 업로드 UI 인터랙션
+            const dropZone = document.getElementById('drop-zone');
+            const fileInput = document.getElementById('file-input');
+
+            dropZone.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => {
+                if(e.target.files.length > 0) {
+                    dropZone.style.borderColor = 'var(--primary-color)';
+                    dropZone.querySelector('.upload-text').innerText = 
+                        `📸 ${e.target.files.length}개의 파일이 선택되었습니다.`;
+                }
+            });
+        });
+
+        // ============================================================
+        // [3] Core Logic: register() Function
+        // ============================================================
+        async function register() {
+            // 1. UI Loading 표시 시작
+            const loadingOverlay = document.getElementById('loading-overlay');
+            loadingOverlay.style.display = 'flex';
+
+            // 2. Input 데이터 수집 (DOM 요소에서 값 가져오기)
+            const inputData = {
+                project_info: {
+                    project_name: document.getElementById('project_name').value,
+                    manager: document.getElementById('manager_name').value,
+                    date: document.getElementById('current-date').innerText
+                },
+                work_details: {
+                    keyword: document.getElementById('work_keyword').value,
+                    location: document.getElementById('location').value,
+                    workers: document.getElementById('workers').value,
+                    equipment: document.getElementById('equipment').value
+                },
+                resources: {
+                    materials: document.getElementById('materials').value
+                },
+                remarks: {
+                    note: document.getElementById('special_note').value
+                },
+                // 파일 처리는 실제로는 FormData 객체를 사용해야 하나, 
+                // 여기서는 JSON 구조 예시를 위해 메타데이터만 포함한다고 가정
+                attachments: {
+                    file_count: document.getElementById('file-input').files.length
+                }
+            };
+
+            console.log("📤 [Client] 전송할 데이터 패키징 완료:", inputData);
+
+            // 3. 서버 통신 (Fetch API)
+            try {
+                // SERVER_URL이 비어있으므로 여기서 fetch는 실패합니다.
+                // 실제 구현 시: ${SERVER_URL}/api/reports/generate 와 같이 엔드포인트 지정
+                const response = await fetch(`${SERVER_URL}/api/generate-report`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // 필요 시 인증 토큰 추가: 'Authorization': 'Bearer ...'
+                    },
+                    body: JSON.stringify(inputData) // 데이터를 JSON 문자열로 변환하여 전송
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+                console.log("✅ [Server] 응답 성공:", result);
+                alert("Day-Con: 보고서 생성이 완료되었습니다!");
+
+            } catch (error) {
+                // 4. 에러 핸들링 (현재 SERVER_URL이 없으므로 이쪽 로직이 실행됨)
+                console.error("⚠️ [Error] 서버 통신 중 오류 발생:", error);
+                
+                // 사용자 경험을 위해 가짜 성공 메시지 (개발 단계용) 
+                // 실제 배포 시에는 제거하거나 적절한 에러 메시지로 변경해야 함
+                setTimeout(() => {
+                    loadingOverlay.style.display = 'none';
+                    alert(`[Day-Con 개발자 모드 알림]\n서버 주소(SERVER_URL)가 설정되지 않아 통신에 실패했습니다.\n\n하지만 전송하려던 데이터는 콘솔(F12)에서 확인할 수 있습니다.\n\n(Error: ${error.message})`);
+                }, 1000); // 1초 뒤 알림
+            }
+        }
+    </script>
+</body>
+</html>
