@@ -733,7 +733,50 @@
         // Modal Logic
         function openModal() { document.getElementById('auth-modal').classList.remove('hidden'); }
         function closeModal() { document.getElementById('auth-modal').classList.add('hidden'); }
+
+        // === 5. BACKEND COMMUNICATION ===
+
+async function requestRegister() {
+    const emailInput = document.getElementById('user-email');
+    const email = emailInput.value;
+    
+    // 유효성 검사
+    if (!email || !email.includes('@')) {
+        alert("올바른 이메일 주소를 입력해주세요.");
+        return;
+    }
+
+    // 백엔드 주소 (Replit Webview 주소 또는 로컬 주소)
+    // Replit에서 실행 중이라면 해당 URL로 변경해야 합니다. 예: "https://your-repl-name.replit.app/register"
+    // 로컬 테스트 시: "http://127.0.0.1:8000/register"
+    const API_URL = "http://127.0.0.1:8000/register"; 
+
+    try {
+        const response = await fetch(API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ email: email }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            console.log("Server Response:", data);
+            alert("회원가입이 완료되었습니다!\n서버 응답: " + data.message);
+            closeModal(); // 성공 시 모달 닫기
+            emailInput.value = ""; // 입력창 초기화
+        } else {
+            alert("오류가 발생했습니다: " + data.detail);
+        }
+    } catch (error) {
+        console.error("Error:", error);
+        alert("서버와 통신할 수 없습니다.\n백엔드가 실행 중인지 확인해주세요.");
+    }
+}
     </script>
 </body>
 </html>
+
 
