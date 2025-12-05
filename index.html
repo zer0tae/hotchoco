@@ -416,8 +416,9 @@
             </div>
             <div class="space-y-3">
                 <input type="email" id="user-email" class="w-full px-4 py-3 bg-slate-50 border rounded-xl outline-none focus:border-cbs-blue" placeholder="이메일">
-                <button onclick="requestRegister()" class="w-full bg-cbs-navy text-white py-4 rounded-xl font-bold hover:bg-slate-800 transition">가입하기</button>
-            </div>
+                <button id="btn-join" onclick="requestRegister()" class="w-full bg-cbs-navy text-white py-4 rounded-xl font-bold hover:bg-slate-800 transition">
+    가입하기
+</button>
         </div>
     </div>
 
@@ -735,9 +736,9 @@
         function closeModal() { document.getElementById('auth-modal').classList.add('hidden'); }
 
         // === 5. BACKEND COMMUNICATION ===
-
 async function requestRegister() {
     const emailInput = document.getElementById('user-email');
+    const btnJoin = document.getElementById('btn-join'); // 버튼 가져오기
     const email = emailInput.value;
     
     // 유효성 검사
@@ -746,12 +747,17 @@ async function requestRegister() {
         return;
     }
 
-    // 백엔드 주소 (Replit Webview 주소 또는 로컬 주소)
-    // Replit에서 실행 중이라면 해당 URL로 변경해야 합니다. 예: "https://your-repl-name.replit.app/register"
-    // 로컬 테스트 시: "http://127.0.0.1:8000/register"
+    // [시각적 효과 1] 통신 시작! 버튼을 비활성화하고 글자를 바꿈
+    const originalBtnText = btnJoin.innerText;
+    btnJoin.innerText = "⏳ 서버로 전송 중...";
+    btnJoin.disabled = true; // 중복 클릭 방지
+    btnJoin.classList.add("opacity-50", "cursor-not-allowed"); // 흐리게 처리
+
+    // 백엔드 주소 (★본인의 Replit 주소로 꼭 변경하세요★)
     const API_URL = "http://127.0.0.1:8000/register"; 
 
     try {
+        // 실제 서버 통신 (Fetch)
         const response = await fetch(API_URL, {
             method: "POST",
             headers: {
@@ -762,21 +768,35 @@ async function requestRegister() {
 
         const data = await response.json();
 
+        // [시각적 효과 2] 통신 완료! 버튼 원상복구
+        btnJoin.innerText = originalBtnText;
+        btnJoin.disabled = false;
+        btnJoin.classList.remove("opacity-50", "cursor-not-allowed");
+
         if (response.ok) {
             console.log("Server Response:", data);
-            alert("회원가입이 완료되었습니다!\n서버 응답: " + data.message);
-            closeModal(); // 성공 시 모달 닫기
-            emailInput.value = ""; // 입력창 초기화
+            // 서버가 보낸 메시지를 화면에 띄움
+            alert(`✅ [서버 응답 성공]\n\n메시지: ${data.message}\n받은 이메일: ${data.data.email}`);
+            
+            closeModal(); 
+            emailInput.value = ""; 
         } else {
-            alert("오류가 발생했습니다: " + data.detail);
+            alert(`⛔ [서버 오류]\n${data.detail}`);
         }
     } catch (error) {
         console.error("Error:", error);
-        alert("서버와 통신할 수 없습니다.\n백엔드가 실행 중인지 확인해주세요.");
+        
+        // 에러 발생 시에도 버튼은 원상복구 해줘야 함
+        btnJoin.innerText = originalBtnText;
+        btnJoin.disabled = false;
+        btnJoin.classList.remove("opacity-50", "cursor-not-allowed");
+
+        alert("❌ 서버와 연결할 수 없습니다.\n백엔드가 켜져있는지 확인해주세요.");
     }
 }
     </script>
 </body>
 </html>
+
 
 
