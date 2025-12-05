@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CBS - 서명 전 계약서 검토 및 리스크 분석</title>
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
     
     <script>
@@ -70,7 +67,6 @@
 </head>
 <body class="font-sans text-slate-800 bg-slate-50 overflow-x-hidden">
 
-    <!-- 1. Navigation -->
     <nav class="bg-white/95 backdrop-blur-md border-b border-slate-200 fixed w-full z-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16 items-center">
@@ -85,18 +81,13 @@
                         <i class="fa-solid fa-database mr-1.5"></i>
                         판례 · 법령 데이터베이스 연동됨
                     </div>
-                    <button onclick="openModal()" class="bg-cbs-navy text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-slate-800 transition shadow-lg">
-                        무료 시작하기
-                    </button>
-                </div>
+                    </div>
             </div>
         </div>
     </nav>
 
-    <!-- 2. Main Container -->
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-20 min-h-screen">
         
-        <!-- Hero Title -->
         <div class="text-center mb-10 fade-in" id="hero-section">
             <h1 class="text-3xl md:text-5xl font-black text-slate-900 mb-4 leading-tight">
                 서명 전, <span class="text-cbs-blue">계약서를 검토</span>해드립니다.
@@ -107,17 +98,13 @@
             </p>
         </div>
 
-        <!-- WIZARD FORM CONTAINER -->
         <div id="wizard-container" class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden fade-in transition-all duration-300">
             
-            <!-- Progress Bar -->
             <div class="bg-slate-50 border-b border-slate-200 px-8 py-4">
                 <div class="flex items-center justify-between relative">
-                    <!-- Progress Lines -->
                     <div class="absolute left-0 top-1/2 transform -translate-y-1/2 w-full h-1 bg-slate-200 -z-10"></div>
                     <div id="progress-line" class="absolute left-0 top-1/2 transform -translate-y-1/2 h-1 bg-cbs-blue transition-all duration-500 -z-0" style="width: 0%;"></div>
 
-                    <!-- Steps -->
                     <div class="flex flex-col items-center step-indicator" data-step="1">
                         <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-sm bg-cbs-blue text-white border-cbs-blue z-10 transition-colors">1</div>
                         <span class="text-xs font-bold mt-1 text-cbs-blue">기본 정보</span>
@@ -137,16 +124,13 @@
                 </div>
             </div>
 
-            <!-- Content Area -->
             <div class="p-8 min-h-[400px]">
                 
-                <!-- STEP 1: Basic Info -->
                 <div id="step-1" class="step-content block animate-fadeIn">
                     <h2 class="text-2xl font-bold text-slate-800 mb-6">어떤 계약을 체결하시나요?</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <label class="block text-sm font-bold text-slate-600 mb-2">산업 분야 (Industry)</label>
-                            <!-- onchange 이벤트로 계약 유형 업데이트 -->
                             <select id="industry" onchange="updateContractTypes()" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-cbs-blue outline-none font-medium">
                                 <option value="construction">🏗️ 건설 / 엔지니어링 / CM</option>
                                 <option value="it">💻 IT / 소프트웨어 / SaaS</option>
@@ -158,8 +142,7 @@
                         <div>
                             <label class="block text-sm font-bold text-slate-600 mb-2">계약 유형 (Contract Type)</label>
                             <select id="contract-type" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-cbs-blue outline-none font-medium">
-                                <!-- JS로 동적 생성됨 -->
-                            </select>
+                                </select>
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-slate-600 mb-2">관할 법령 / 지역</label>
@@ -182,14 +165,12 @@
                     </div>
                 </div>
 
-                <!-- STEP 2: User Context -->
                 <div id="step-2" class="step-content hidden animate-fadeIn">
                     <h2 class="text-2xl font-bold text-slate-800 mb-2">누구 입장에서 검토할까요?</h2>
                     <p class="text-slate-500 mb-6 text-sm">유불리를 판단하는 기준이 됩니다.</p>
                     
                     <div class="mb-8">
                         <label class="block text-sm font-bold text-slate-600 mb-3">나의 역할 (Role)</label>
-                        <!-- 역할은 산업군에 따라 텍스트만 바뀌는 형태로 단순화 (실제로는 동적이어야 하나 여기선 범용적 용어 사용) -->
                         <div class="grid grid-cols-2 md:grid-cols-2 gap-4">
                             <label class="cursor-pointer">
                                 <input type="radio" name="role" value="supplier" class="hidden peer custom-checkbox" checked>
@@ -225,7 +206,6 @@
                     </div>
                 </div>
 
-                <!-- STEP 3: Focus Areas -->
                 <div id="step-3" class="step-content hidden animate-fadeIn">
                     <h2 class="text-2xl font-bold text-slate-800 mb-2">중점적으로 볼 항목</h2>
                     <p class="text-slate-500 mb-6 text-sm">선택하신 항목은 가중치를 두어 더 정밀하게 분석합니다.</p>
@@ -282,7 +262,6 @@
                     </div>
                 </div>
 
-                <!-- STEP 4: Document Input -->
                 <div id="step-4" class="step-content hidden animate-fadeIn">
                     <h2 class="text-2xl font-bold text-slate-800 mb-2">분석할 계약서 입력</h2>
                     <p class="text-slate-500 mb-6 text-sm">입력하신 텍스트를 기반으로 실제 분석을 수행합니다.</p>
@@ -293,12 +272,10 @@
                             placeholder="여기에 계약서 조항을 붙여넣으세요."></textarea>
                         
                         <div class="absolute bottom-4 right-4 flex space-x-2">
-                            <!-- 데모용 예시 버튼 그룹 -->
                             <div class="relative group">
                                 <button class="text-xs bg-white border border-slate-200 px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-50 transition shadow-sm font-bold">
                                     <i class="fa-solid fa-paste mr-1"></i>예시 문구 넣기
                                 </button>
-                                <!-- Tooltip menu for examples -->
                                 <div class="absolute bottom-full right-0 mb-2 w-48 bg-white rounded-lg shadow-xl border border-slate-200 hidden group-hover:block p-1">
                                     <button onclick="pasteExample('construction')" class="w-full text-left px-3 py-2 text-xs hover:bg-slate-50 rounded">🏗️ 건설: ESC/간접비 불가</button>
                                     <button onclick="pasteExample('it')" class="w-full text-left px-3 py-2 text-xs hover:bg-slate-50 rounded">💻 IT: 하자보수/IP독점</button>
@@ -314,7 +291,6 @@
 
             </div>
 
-            <!-- Footer Actions -->
             <div class="bg-slate-50 p-6 border-t border-slate-200 flex justify-between items-center">
                 <button id="btn-prev" onclick="changeStep(-1)" class="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition" disabled>
                     이전
@@ -333,7 +309,6 @@
             </div>
         </div>
 
-        <!-- Loading View -->
         <div id="loading-container" class="hidden max-w-2xl mx-auto text-center py-20 fade-in">
             <div class="relative w-24 h-24 mx-auto mb-8">
                 <div class="absolute inset-0 border-4 border-slate-200 rounded-full"></div>
@@ -345,30 +320,24 @@
             <h3 class="text-2xl font-bold text-slate-800 mb-2">계약서 분석 엔진 가동 중...</h3>
             <p class="text-slate-500 text-sm mb-6" id="loading-status">텍스트 파싱 중...</p>
             
-            <!-- Log Console -->
             <div id="analysis-log" class="bg-slate-900 text-green-400 font-mono text-xs text-left p-4 rounded-lg shadow-inner max-w-md mx-auto h-32 overflow-y-auto custom-scrollbar">
                 > System initialized.<br>
             </div>
         </div>
 
-        <!-- Result View -->
         <div id="result-container" class="hidden fade-in mt-10">
             <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-8">
                 
-                <!-- Left: Document Viewer with Highlights -->
                 <div class="lg:col-span-2 bg-white rounded-2xl shadow-xl border border-slate-200 flex flex-col h-[700px]">
                     <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 rounded-t-2xl">
                         <h3 class="font-bold text-slate-700"><i class="fa-solid fa-file-contract mr-2"></i>분석 결과</h3>
                         <span id="risk-count-badge" class="text-xs bg-cbs-risk text-white px-2 py-1 rounded font-bold">--개 위반 발견</span>
                     </div>
                     <div id="highlighted-text" class="p-8 overflow-y-auto custom-scrollbar text-sm leading-loose text-slate-600 flex-grow font-medium">
-                        <!-- Content Injected via JS -->
-                    </div>
+                        </div>
                 </div>
 
-                <!-- Right: Analysis Panel -->
                 <div class="space-y-6">
-                    <!-- Score -->
                     <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-100 relative overflow-hidden">
                         <p class="text-sm font-bold text-slate-500 uppercase tracking-wider">계약 안전 점수</p>
                         <div class="flex items-end mt-2">
@@ -378,7 +347,6 @@
                         <p id="score-comment" class="text-sm font-bold mt-2 text-slate-600">분석 결과 대기 중</p>
                     </div>
 
-                    <!-- Advice Panel -->
                     <div id="ai-advice-panel" class="bg-cbs-navy text-white p-6 rounded-2xl shadow-xl h-[500px] overflow-y-auto custom-scrollbar relative">
                         <div class="flex items-center mb-4 pb-4 border-b border-slate-700">
                             <div class="w-8 h-8 rounded bg-cbs-legal flex items-center justify-center mr-3">
@@ -404,22 +372,6 @@
             </div>
         </div>
 
-    </div>
-
-    <!-- Register Modal -->
-    <div id="auth-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center fade-in">
-        <div class="bg-white rounded-2xl w-full max-w-md p-8 relative shadow-2xl mx-4">
-            <button onclick="closeModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600"><i class="fa-solid fa-xmark text-xl"></i></button>
-            <div class="text-center mb-6">
-                <h2 class="text-2xl font-bold text-slate-900">회원가입</h2>
-                <p class="text-slate-500 text-sm mt-1">전문가 리포트 전체를 저장하세요.</p>
-            </div>
-            <div class="space-y-3">
-                <input type="email" id="user-email" class="w-full px-4 py-3 bg-slate-50 border rounded-xl outline-none focus:border-cbs-blue" placeholder="이메일">
-                <button id="btn-join" onclick="requestRegister()" class="w-full bg-cbs-navy text-white py-4 rounded-xl font-bold hover:bg-slate-800 transition">
-    가입하기
-</button>
-        </div>
     </div>
 
     <script>
@@ -731,72 +683,7 @@
             }
         }
 
-        // Modal Logic
-        function openModal() { document.getElementById('auth-modal').classList.remove('hidden'); }
-        function closeModal() { document.getElementById('auth-modal').classList.add('hidden'); }
-
-        // === 5. BACKEND COMMUNICATION ===
-async function requestRegister() {
-    const emailInput = document.getElementById('user-email');
-    const btnJoin = document.getElementById('btn-join'); // 버튼 가져오기
-    const email = emailInput.value;
-    
-    // 유효성 검사
-    if (!email || !email.includes('@')) {
-        alert("올바른 이메일 주소를 입력해주세요.");
-        return;
-    }
-
-    // [시각적 효과 1] 통신 시작! 버튼을 비활성화하고 글자를 바꿈
-    const originalBtnText = btnJoin.innerText;
-    btnJoin.innerText = "⏳ 서버로 전송 중...";
-    btnJoin.disabled = true; // 중복 클릭 방지
-    btnJoin.classList.add("opacity-50", "cursor-not-allowed"); // 흐리게 처리
-
-    // 백엔드 주소 (★본인의 Replit 주소로 꼭 변경하세요★)
-    const API_URL = "http://127.0.0.1:8000/register"; 
-
-    try {
-        // 실제 서버 통신 (Fetch)
-        const response = await fetch(API_URL, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({ email: email }),
-        });
-
-        const data = await response.json();
-
-        // [시각적 효과 2] 통신 완료! 버튼 원상복구
-        btnJoin.innerText = originalBtnText;
-        btnJoin.disabled = false;
-        btnJoin.classList.remove("opacity-50", "cursor-not-allowed");
-
-        if (response.ok) {
-            console.log("Server Response:", data);
-            // 서버가 보낸 메시지를 화면에 띄움
-            alert(`✅ [서버 응답 성공]\n\n메시지: ${data.message}\n받은 이메일: ${data.data.email}`);
-            
-            closeModal(); 
-            emailInput.value = ""; 
-        } else {
-            alert(`⛔ [서버 오류]\n${data.detail}`);
-        }
-    } catch (error) {
-        console.error("Error:", error);
-        
-        // 에러 발생 시에도 버튼은 원상복구 해줘야 함
-        btnJoin.innerText = originalBtnText;
-        btnJoin.disabled = false;
-        btnJoin.classList.remove("opacity-50", "cursor-not-allowed");
-
-        alert("❌ 서버와 연결할 수 없습니다.\n백엔드가 켜져있는지 확인해주세요.");
-    }
-}
+        // Modal Logic functions removed
     </script>
 </body>
 </html>
-
-
-
