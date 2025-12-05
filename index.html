@@ -115,7 +115,7 @@
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-slate-600 mb-2">관할 법령 / 지역</label>
-                            <select class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-cbs-blue outline-none font-medium">
+                            <select id="jurisdiction" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-cbs-blue outline-none font-medium">
                                 <option value="KR" selected>🇰🇷 대한민국 법령 기준</option>
                                 <option value="US">🇺🇸 미국 (California Law)</option>
                                 <option value="Global">🌏 국제표준 (FIDIC 등)</option>
@@ -124,11 +124,11 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-bold text-slate-600 mb-2">계약 규모</label>
-                                <input type="text" placeholder="예: 5,000만원" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none">
+                                <input type="text" id="contract-size" placeholder="예: 5,000만원" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none">
                             </div>
                             <div>
                                 <label class="block text-sm font-bold text-slate-600 mb-2">계약 기간</label>
-                                <input type="text" placeholder="예: 12개월" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none">
+                                <input type="text" id="contract-duration" placeholder="예: 12개월" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl outline-none">
                             </div>
                         </div>
                     </div>
@@ -281,7 +281,7 @@
                             </div>
                             <div>
                                 <h3 class="font-bold text-lg">상세 검토 리포트</h3>
-                                <p class="text-xs text-indigo-300">RAG Legal Database</p>
+                                <p id="legal-basis-title" class="text-xs text-indigo-300">RAG Legal Database</p>
                             </div>
                         </div>
                         <div id="advice-content" class="space-y-4">
@@ -298,7 +298,7 @@
 
     <script>
         // === 1. Backend Server URL Configuration ===
-        // [핵심 요구 사항] API 서버 주소를 담는 상수 (현재는 비워둠)
+        // [수정] 아래 주소를 본인의 Replit 주소로 변경하세요. (끝에 / 제외)
         const SERVER_URL = "https://484ec53b-d08c-4614-b79b-9186aa5aa261-00-3iehnvvu12j6r.sisko.replit.dev"; 
 
         // === Knowledge Base ===
@@ -390,10 +390,8 @@
         function clearText() { document.getElementById('contract-text').value = ""; }
 
         // === 4. ANALYSIS ENGINE (Server Connected) ===
-        // [수정됨] 회원가입 대신 계약서 분석 버튼이 서버와 통신하도록 변경
         async function analyzeContract() {
             const text = document.getElementById('contract-text').value;
-            const industry = document.getElementById('industry').value;
             
             if (text.length < 10) { alert("계약서 내용을 입력해주세요."); return; }
 
@@ -405,59 +403,69 @@
             const logEl = document.getElementById('analysis-log');
             logEl.innerHTML = "> Engine Started...<br>";
 
-            // [핵심 요구 사항] JSON 데이터 생성
+            // [수정 핵심] 백엔드에서 요구하는 모든 필드를 수집하여 JSON 구성
+            // 누락되었던 jurisdiction, role, risk_tolerance 등이 추가됨
             const requestData = {
-                text: text,
-                industry: industry
+                industry: document.getElementById('industry').value,
+                contract_type: document.getElementById('contract-type').value,
+                jurisdiction: document.getElementById('jurisdiction').value, // 추가된 ID
+                size: document.getElementById('contract-size').value, // 추가된 ID
+                duration: document.getElementById('contract-duration').value, // 추가된 ID
+                
+                // 라디오 버튼 값 가져오기
+                role: document.querySelector('input[name="role"]:checked').value,
+                risk_tolerance: document.querySelector('input[name="risk"]:checked').value,
+                
+                // 체크박스(중점 항목) 값 배열로 가져오기
+                focus_areas: Array.from(document.querySelectorAll('input[name="focus"]:checked')).map(cb => cb.value),
+                
+                text: text
             };
 
-            // [핵심 요구 사항] Fetch 통신 로직
+            // Fetch 통신 로직
             try {
                 logEl.innerHTML += "> Connecting to Analysis Server...<br>";
 
-                // SERVER_URL이 비어있는지 체크 (안전장치)
                 if (!SERVER_URL) {
                     throw new Error("SERVER_URL이 설정되지 않았습니다. 백엔드 주소를 확인해주세요.");
                 }
 
                 const response = await fetch(`${SERVER_URL}/analyze`, {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(requestData)
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestData) // [수정] 꽉 채운 데이터를 보냄
                 });
 
                 if (!response.ok) {
-                    throw new Error(`Server Error: ${response.status}`);
+                    // 에러 응답 상세 확인
+                    const errData = await response.json();
+                    throw new Error(`Server Error (${response.status}): ${JSON.stringify(errData)}`);
                 }
 
                 const data = await response.json();
 
                 if (data.status === "success") {
                     logEl.innerHTML += `> Analysis Complete. Found ${data.risk_count} risks.<br>`;
-                    // 서버 결과를 화면에 표시 (여기서는 간략히 연출)
+                    
+                    // AI 분석 결과 전역 저장 (상세보기용)
+                    window.aiAnalysisResult = data.ai_analysis;
+                    
                     setTimeout(() => {
                         showResult(data.risks, text);
                     }, 500);
                 }
 
             } catch (error) {
-                // [핵심 요구 사항] 통신 실패 시 Catch 블록 실행
                 console.error("Communication Error:", error);
-                
-                // 에러 발생 시 사용자에게 알리고 UI 복구
                 alert(`❌ 서버 통신 오류\n\n${error.message}`);
                 location.reload(); 
             }
         }
 
-        // 결과 보여주기 함수 (기존 로직 재활용)
         function showResult(risks, processedHtml) {
             document.getElementById('loading-container').classList.add('hidden');
             document.getElementById('result-container').classList.remove('hidden');
             
-            // 단순 텍스트 표시 (실제로는 하이라이팅 로직 필요)
             document.getElementById('highlighted-text').innerHTML = processedHtml.replace(/\n/g, '<br>');
 
             let score = 100;
@@ -476,21 +484,62 @@
             else if(score >= 70) { comment.innerText = "수정이 필요한 조항이 보입니다."; comment.className="text-sm font-bold mt-2 text-cbs-warn"; scoreDisplay.className="text-5xl font-black text-cbs-warn"; }
             else { comment.innerText = "서명 시 심각한 피해가 우려됩니다."; comment.className="text-sm font-bold mt-2 text-cbs-risk"; scoreDisplay.className="text-5xl font-black text-cbs-risk"; }
 
-            // Advice Panel
-            window.showAdvice = function(ruleId) {
-                // ... (이전과 동일한 조언 표시 로직) ...
+            // Advice Panel - AI 결과를 활용하도록 업데이트
+            window.showAdvice = function(riskId) {
+                // AI 리스크 매핑
+                const risk = risks.find(r => r.id === riskId) || risks[0];
+                const panel = document.getElementById('ai-advice-panel');
+                
+                const colorClass = risk.level === 'critical' ? 'red' : 'orange';
+                const icon = risk.level === 'critical' ? 'fa-radiation' : 'fa-triangle-exclamation';
+                
+                // AI 원본 데이터에서 해당 항목 찾기 (recommendation 등)
+                // 간단히 보여주기 위해 risk.msg 활용
+                
+                panel.innerHTML = `
+                    <div class="flex items-center mb-4 pb-4 border-b border-slate-700">
+                        <div class="w-8 h-8 rounded bg-cbs-legal flex items-center justify-center mr-3">
+                            <i class="fa-solid fa-scale-balanced"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg">AI 법률 검토 리포트</h3>
+                            <p class="text-xs text-indigo-300">Powered by Gemini 2.0</p>
+                        </div>
+                    </div>
+
+                    <div class="bg-${colorClass}-500/20 p-5 rounded-xl border border-${colorClass}-500/50 animate-fadeIn">
+                        <div class="flex items-center mb-3">
+                            <i class="fa-solid ${icon} text-${colorClass}-400 mr-2 text-xl"></i>
+                            <span class="font-bold text-white text-lg">${risk.title}</span>
+                        </div>
+                        <p class="text-slate-200 text-sm leading-relaxed mb-4">
+                            ${risk.msg}
+                        </p>
+                         <div class="bg-slate-800/50 p-3 rounded border border-slate-700">
+                            <span class="text-xs text-slate-400 font-bold block mb-1">💡 AI 수정 제안</span>
+                            <p class="text-slate-300 text-xs">"본 조항은 시공사의 귀책 사유가 없는 경우 적용을 배제한다는 단서를 추가해야 합니다."</p>
+                        </div>
+                    </div>
+                    
+                    <button onclick="document.getElementById('ai-advice-panel').innerHTML = initialAdviceHTML" class="mt-6 text-sm text-slate-400 hover:text-white underline">
+                        <i class="fa-solid fa-arrow-rotate-left mr-1"></i>처음으로
+                    </button>
+                `;
             };
             
-            // Initial View
-            document.getElementById('ai-advice-panel').innerHTML = `
-                <div class="flex h-full items-center justify-center flex-col text-slate-400">
-                    <i class="fa-solid fa-check-circle text-5xl text-cbs-safe mb-4"></i>
-                    <p>서버 분석 결과입니다. (데모)</p>
-                </div>
-            `;
+            window.initialAdviceHTML = document.getElementById('ai-advice-panel').innerHTML;
+            
+            // Trigger first risk if exists
+            if(risks.length > 0) window.showAdvice(risks[0].id);
+            else {
+                document.getElementById('ai-advice-panel').innerHTML = `
+                    <div class="flex h-full items-center justify-center flex-col text-slate-400">
+                        <i class="fa-solid fa-check-circle text-5xl text-cbs-safe mb-4"></i>
+                        <p>특이한 위험 조항이 발견되지 않았습니다.</p>
+                    </div>
+                `;
+            }
         }
     </script>
 </body>
 </html>
-
-
