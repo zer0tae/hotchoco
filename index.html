@@ -286,10 +286,9 @@
     </div>
 
     <script>
-        // === 1. Server Configuration ===
-        // 현재 페이지의 주소를 자동으로 감지합니다. (끝의 슬래시는 제거)
-        const BACKEND_BASE_URL = window.location.origin.replace(/\/+$/, ""); 
-        // 실제 요청 주소는 '/ai' 입니다.
+        // === 1. Server Configuration (Hardcoded) ===
+        // [수정됨] 사용자분이 주신 정확한 절대 주소를 사용합니다.
+        const BACKEND_BASE_URL = "https://484ec53b-d08c-4614-b79b-9186aa5aa261-00-3iehnvvu12j6r.sisko.replit.dev";
         const AI_URL = BACKEND_BASE_URL + "/ai";
 
         // === Knowledge Base ===
@@ -318,7 +317,7 @@
             }
         }
 
-        // 예시 텍스트 입력 기능
+        // 예시 문구 입력 함수
         function pasteExample(type) {
             let text = "";
             if (type === 'construction') text = `제22조 [물가변동 배제]\n본 공사 기간 중 물가 변동으로 인하여 재료비 등이 상승하더라도 "을"은 계약금액의 증액을 청구할 수 없다.\n\n제23조 [간접비]\n발주자의 귀책 사유로 공기가 연장되더라도 현장관리비 등 간접비 증액은 인정하지 아니한다.`;
@@ -327,61 +326,51 @@
         }
         function clearText() { document.getElementById('contract-text').value = ""; }
 
-        // === 2. AI 통신 로직 (핵심) ===
+        // === 2. AI Communication Logic ===
 
-        // [Logic 1] 화면의 모든 입력값을 'inputs' 객체로 수집
+        // [Logic 1] 모든 입력값 수집 (collectInputsFromPage)
         function collectInputsFromPage() {
-            return {
+            const inputs = {
                 industry: document.getElementById('industry').value,
                 contractType: document.getElementById('contract-type').value,
                 jurisdiction: document.getElementById('jurisdiction').value,
                 contractSize: document.getElementById('contract-size').value,
                 contractDuration: document.getElementById('contract-duration').value,
-                
-                // 라디오 버튼 선택값
                 role: document.querySelector('input[name="role"]:checked') ? document.querySelector('input[name="role"]:checked').value : "",
                 risk: document.querySelector('input[name="risk"]:checked') ? document.querySelector('input[name="risk"]:checked').value : "",
-                
-                // 체크박스 다중 선택값 (배열)
                 focusAreas: Array.from(document.querySelectorAll('input[name="focus"]:checked')).map(cb => cb.value),
-                
-                // 계약서 원문
                 contractText: document.getElementById('contract-text').value
             };
+            return inputs;
         }
 
-        // [Logic 2] 백엔드(/ai) 호출 및 답변 수신
+        // [Logic 2] 백엔드 호출 (callAI)
         async function callAI(inputs) {
             try {
-                // 1. 요청 보내기
                 const response = await fetch(AI_URL, {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ inputs: inputs }) // 규격 준수: { inputs: ... }
+                    body: JSON.stringify({ inputs: inputs })
                 });
 
                 if (!response.ok) {
-                    throw new Error(`서버 응답 오류: ${response.status}`);
+                    throw new Error(`HTTP Error: ${response.status}`);
                 }
 
-                // 2. 응답 받기
                 const data = await response.json();
-                
-                // 3. 답변 텍스트 반환 (규격 준수: data.answer)
-                return data.answer || "AI로부터 빈 응답이 왔습니다.";
+                return data.answer || "AI가 빈 응답을 보냈습니다.";
 
             } catch (error) {
-                console.error("AI 호출 실패:", error);
-                return `[통신 오류] 서버와 연결할 수 없습니다.\n상세 내용: ${error.message}`;
+                console.error("AI 호출 오류:", error);
+                return `[통신 오류] 서버(${AI_URL})와 연결할 수 없습니다.\n원인: ${error.message}`;
             }
         }
 
-        // [Logic 3] '분석 시작' 버튼 클릭 시 실행되는 메인 함수
+        // [Logic 3] 실행 버튼 클릭 (Trigger)
         async function onRunAIButtonClicked() {
             const text = document.getElementById('contract-text').value;
             if (text.length < 5) { alert("계약서 내용을 입력해주세요."); return; }
 
-            // 1. 화면 전환 (입력폼 숨기기 -> 로딩창 보이기)
             document.getElementById('form-container').classList.add('hidden');
             document.getElementById('hero-section').classList.add('hidden');
             document.getElementById('loading-container').classList.remove('hidden');
@@ -389,34 +378,29 @@
             const logEl = document.getElementById('analysis-log');
             logEl.innerHTML = "> Engine Started...<br>";
 
-            // 2. 입력값 수집
             logEl.innerHTML += "> Collecting Inputs...<br>";
             const inputs = collectInputsFromPage();
 
-            // 3. AI 서버 호출
             logEl.innerHTML += "> Connecting to AI Server...<br>";
             const answer = await callAI(inputs);
 
-            // 4. 완료 및 결과 표시
             logEl.innerHTML += "> Analysis Complete.<br>";
             setTimeout(() => {
                 showResultString(answer);
             }, 500);
         }
 
-        // [Logic 4] 결과 화면에 텍스트 표시
+        // [Logic 4] 결과 표시 (단순 텍스트 모드)
         function showResultString(answerText) {
             document.getElementById('loading-container').classList.add('hidden');
             document.getElementById('result-container').classList.remove('hidden');
             
-            // 줄바꿈 문자(\n)를 HTML 태그(<br>)는 스타일(white-space: pre-line)으로 자동 처리됨
             const outputDiv = document.getElementById('highlighted-text');
             outputDiv.innerText = answerText; 
             
-            // 결과 화면의 점수판 등은 AI가 텍스트만 주므로 고정값 처리
             document.getElementById('score-display').innerText = "AI"; 
             document.getElementById('risk-count-badge').innerText = "분석 완료";
-            document.getElementById('score-comment').innerText = "상세 내용을 확인하세요.";
+            document.getElementById('score-comment').innerText = "AI 분석 결과입니다.";
         }
 
     </script>
