@@ -224,7 +224,7 @@
             </div>
 
             <div class="bg-slate-50 p-8 border-t border-slate-200">
-                <button onclick="analyzeContract()" class="w-full py-4 rounded-xl font-black text-lg bg-cbs-blue text-white hover:bg-blue-600 transition shadow-lg flex items-center justify-center group transform hover:scale-[1.01]">
+                <button onclick="onRunAIButtonClicked()" class="w-full py-4 rounded-xl font-black text-lg bg-cbs-blue text-white hover:bg-blue-600 transition shadow-lg flex items-center justify-center group transform hover:scale-[1.01]">
                     <i class="fa-solid fa-wand-magic-sparkles mr-3 group-hover:animate-pulse"></i>
                     계약서 실시간 정밀 분석 시작하기
                 </button>
@@ -252,18 +252,18 @@
                 <div class="lg:col-span-2 bg-white rounded-2xl shadow-xl border border-slate-200 flex flex-col h-[700px]">
                     <div class="px-6 py-4 border-b border-slate-200 flex justify-between items-center bg-slate-50 rounded-t-2xl">
                         <h3 class="font-bold text-slate-700"><i class="fa-solid fa-file-contract mr-2"></i>분석 결과</h3>
-                        <span id="risk-count-badge" class="text-xs bg-cbs-risk text-white px-2 py-1 rounded font-bold">--개 위반 발견</span>
+                        <span id="risk-count-badge" class="text-xs bg-cbs-risk text-white px-2 py-1 rounded font-bold">완료</span>
                     </div>
-                    <div id="highlighted-text" class="p-8 overflow-y-auto custom-scrollbar text-sm leading-loose text-slate-600 flex-grow font-medium"></div>
+                    <div id="highlighted-text" class="p-8 overflow-y-auto custom-scrollbar text-sm leading-loose text-slate-600 flex-grow font-medium whitespace-pre-line"></div>
                 </div>
                 <div class="space-y-6">
                     <div class="bg-white p-6 rounded-2xl shadow-lg border border-slate-100 relative overflow-hidden">
                         <p class="text-sm font-bold text-slate-500 uppercase tracking-wider">계약 안전 점수</p>
                         <div class="flex items-end mt-2">
-                            <span id="score-display" class="text-5xl font-black text-cbs-blue">--</span>
-                            <span class="text-xl text-slate-400 font-bold mb-2 ml-1">/ 100</span>
+                            <span id="score-display" class="text-5xl font-black text-cbs-blue">AI</span>
+                            <span class="text-xl text-slate-400 font-bold mb-2 ml-1"> Review</span>
                         </div>
-                        <p id="score-comment" class="text-sm font-bold mt-2 text-slate-600">분석 결과 대기 중</p>
+                        <p id="score-comment" class="text-sm font-bold mt-2 text-cbs-safe">분석이 완료되었습니다.</p>
                     </div>
                     <div id="ai-advice-panel" class="bg-cbs-navy text-white p-6 rounded-2xl shadow-xl h-[500px] overflow-y-auto custom-scrollbar relative">
                         <div class="flex items-center mb-4 pb-4 border-b border-slate-700">
@@ -274,7 +274,7 @@
                             </div>
                         </div>
                         <div id="advice-content" class="space-y-4">
-                            <p class="text-slate-400 text-center mt-20">왼쪽의 <span class="text-red-400 font-bold underline">하이라이트된 문장</span>을<br>클릭하여 상세 내용을 확인하세요.</p>
+                            <p class="text-slate-200 text-sm">왼쪽의 분석 결과 텍스트를 확인해주세요.</p>
                         </div>
                     </div>
                 </div>
@@ -287,8 +287,9 @@
 
     <script>
         // === 1. Server Configuration ===
-        // [중요] 주소를 비워두면 자동으로 현재 페이지 주소를 기반으로 요청합니다.
-        const SERVER_URL = "https://484ec53b-d08c-4614-b79b-9186aa5aa261-00-3iehnvvu12j6r.sisko.replit.dev"; 
+        // 현재 페이지의 기본 주소를 자동으로 사용 (끝에 있는 슬래시는 제거)
+        const BACKEND_BASE_URL = window.location.origin.replace(/\/+$/, ""); 
+        const AI_URL = BACKEND_BASE_URL + "/ai";
 
         // === Knowledge Base ===
         const contractOptions = {
@@ -316,7 +317,7 @@
             }
         }
 
-        // [변경됨] Wizard Logic 삭제 (Single Page에서는 불필요)
+        // 예시 문구 입력 함수
         function pasteExample(type) {
             let text = "";
             if (type === 'construction') text = `제22조 [물가변동 배제]\n본 공사 기간 중 물가 변동으로 인하여 재료비 등이 상승하더라도 "을"은 계약금액의 증액을 청구할 수 없다.\n\n제23조 [간접비]\n발주자의 귀책 사유로 공기가 연장되더라도 현장관리비 등 간접비 증액은 인정하지 아니한다.`;
@@ -325,12 +326,58 @@
         }
         function clearText() { document.getElementById('contract-text').value = ""; }
 
-        // === 4. ANALYSIS ENGINE ===
-        async function analyzeContract() {
-            const text = document.getElementById('contract-text').value;
-            if (text.length < 10) { alert("계약서 내용을 입력해주세요."); return; }
+        // === 2. AI Communication Logic ===
 
-            // [변경됨] Form Container 숨기기 (이전엔 Wizard Container)
+        // [Logic 1] 모든 입력값 수집 (collectInputsFromPage)
+        function collectInputsFromPage() {
+            const inputs = {
+                industry: document.getElementById('industry').value,
+                contractType: document.getElementById('contract-type').value,
+                jurisdiction: document.getElementById('jurisdiction').value,
+                contractSize: document.getElementById('contract-size').value,
+                contractDuration: document.getElementById('contract-duration').value,
+                
+                // Radio 버튼 값 수집
+                role: document.querySelector('input[name="role"]:checked') ? document.querySelector('input[name="role"]:checked').value : "",
+                risk: document.querySelector('input[name="risk"]:checked') ? document.querySelector('input[name="risk"]:checked').value : "",
+                
+                // Checkbox 값 수집 (배열)
+                focusAreas: Array.from(document.querySelectorAll('input[name="focus"]:checked')).map(cb => cb.value),
+                
+                contractText: document.getElementById('contract-text').value
+            };
+            return inputs;
+        }
+
+        // [Logic 2] 백엔드 호출 (callAI)
+        async function callAI(inputs) {
+            try {
+                const response = await fetch(AI_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ inputs: inputs })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status}`);
+                }
+
+                const data = await response.json();
+                // 백엔드 응답 규격: { "answer": "..." }
+                return data.answer || "AI가 빈 응답을 보냈습니다.";
+
+            } catch (error) {
+                console.error("AI 호출 오류:", error);
+                return `[통신 오류] 서버와 연결할 수 없습니다.\n원인: ${error.message}`;
+            }
+        }
+
+        // [Logic 3] 실행 버튼 클릭 (Trigger)
+        async function onRunAIButtonClicked() {
+            const text = document.getElementById('contract-text').value;
+            if (text.length < 5) { alert("계약서 내용을 입력해주세요."); return; }
+
+            // 1. 화면 전환 (로딩창 표시)
             document.getElementById('form-container').classList.add('hidden');
             document.getElementById('hero-section').classList.add('hidden');
             document.getElementById('loading-container').classList.remove('hidden');
@@ -338,94 +385,38 @@
             const logEl = document.getElementById('analysis-log');
             logEl.innerHTML = "> Engine Started...<br>";
 
-            // [Data Collection] - Gathering all inputs for Gemini
-            const requestData = {
-                industry: document.getElementById('industry').value,
-                contract_type: document.getElementById('contract-type').value,
-                jurisdiction: document.getElementById('jurisdiction').value,
-                size: document.getElementById('contract-size').value,
-                duration: document.getElementById('contract-duration').value,
-                role: document.querySelector('input[name="role"]:checked').value,
-                risk_tolerance: document.querySelector('input[name="risk"]:checked').value,
-                focus_areas: Array.from(document.querySelectorAll('input[name="focus"]:checked')).map(cb => cb.value),
-                text: text
-            };
+            // 2. 입력값 수집
+            logEl.innerHTML += "> Collecting Inputs...<br>";
+            const inputs = collectInputsFromPage();
 
-            try {
-                logEl.innerHTML += "> Connecting to Analysis Server...<br>";
-                
-                // [Auto-Detect URL] Replit or Localhost
-                const response = await fetch('/analyze', { 
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(requestData)
-                });
+            // 3. AI 호출
+            logEl.innerHTML += "> Connecting to AI Server...<br>";
+            const answer = await callAI(inputs);
 
-                if (!response.ok) {
-                    const errData = await response.json();
-                    throw new Error(`Server Error (${response.status}): ${JSON.stringify(errData)}`);
-                }
-
-                const data = await response.json();
-
-                if (data.status === "success") {
-                    logEl.innerHTML += `> Analysis Complete. Found ${data.risk_count} risks.<br>`;
-                    window.aiAnalysisResult = data.ai_analysis;
-                    setTimeout(() => { showResult(data.risks, text); }, 500);
-                }
-
-            } catch (error) {
-                console.error("Communication Error:", error);
-                alert(`❌ 서버 통신 오류\n\n${error.message}`);
-                location.reload(); 
-            }
+            // 4. 결과 표시
+            logEl.innerHTML += "> Analysis Complete.<br>";
+            
+            // 약간의 딜레이 후 결과 화면으로 전환
+            setTimeout(() => {
+                showResultString(answer);
+            }, 500);
         }
 
-        function showResult(risks, processedHtml) {
+        // [Logic 4] 결과 표시 (단순 텍스트 모드)
+        function showResultString(answerText) {
             document.getElementById('loading-container').classList.add('hidden');
             document.getElementById('result-container').classList.remove('hidden');
-            document.getElementById('highlighted-text').innerHTML = processedHtml.replace(/\n/g, '<br>');
-
-            let score = 100;
-            risks.forEach(r => { if(r.level === 'critical') score -= 20; else score -= 10; });
-            if(score < 0) score = 0;
-
-            document.getElementById('score-display').innerText = score;
-            document.getElementById('risk-count-badge').innerText = `${risks.length}개 위험 발견`;
-            const comment = document.getElementById('score-comment');
             
-            if(score >= 90) { comment.innerText = "비교적 안전한 계약서입니다."; comment.className="text-sm font-bold mt-2 text-cbs-safe"; }
-            else if(score >= 70) { comment.innerText = "수정이 필요한 조항이 보입니다."; comment.className="text-sm font-bold mt-2 text-cbs-warn"; }
-            else { comment.innerText = "서명 시 심각한 피해가 우려됩니다."; comment.className="text-sm font-bold mt-2 text-cbs-risk"; }
-
-            window.showAdvice = function(riskId) {
-                const risk = risks.find(r => r.id === riskId) || risks[0];
-                const panel = document.getElementById('ai-advice-panel');
-                const colorClass = risk.level === 'critical' ? 'red' : 'orange';
-                const icon = risk.level === 'critical' ? 'fa-radiation' : 'fa-triangle-exclamation';
-                
-                panel.innerHTML = `
-                    <div class="flex items-center mb-4 pb-4 border-b border-slate-700">
-                        <div class="w-8 h-8 rounded bg-cbs-legal flex items-center justify-center mr-3"><i class="fa-solid fa-scale-balanced"></i></div>
-                        <div><h3 class="font-bold text-lg">AI 법률 검토 리포트</h3><p class="text-xs text-indigo-300">Powered by Gemini 1.5</p></div>
-                    </div>
-                    <div class="bg-${colorClass}-500/20 p-5 rounded-xl border border-${colorClass}-500/50 animate-fadeIn">
-                        <div class="flex items-center mb-3">
-                            <i class="fa-solid ${icon} text-${colorClass}-400 mr-2 text-xl"></i>
-                            <span class="font-bold text-white text-lg">${risk.title}</span>
-                        </div>
-                        <p class="text-slate-200 text-sm leading-relaxed mb-4">${risk.msg}</p>
-                    </div>
-                    <button onclick="document.getElementById('ai-advice-panel').innerHTML = initialAdviceHTML" class="mt-6 text-sm text-slate-400 hover:text-white underline"><i class="fa-solid fa-arrow-rotate-left mr-1"></i>처음으로</button>
-                `;
-            };
-            window.initialAdviceHTML = document.getElementById('ai-advice-panel').innerHTML;
-            if(risks.length > 0) window.showAdvice(risks[0].id);
-            else {
-                document.getElementById('ai-advice-panel').innerHTML = `<div class="flex h-full items-center justify-center flex-col text-slate-400"><i class="fa-solid fa-check-circle text-5xl text-cbs-safe mb-4"></i><p>특이한 위험 조항이 발견되지 않았습니다.</p></div>`;
-            }
+            // 결과 텍스트 삽입
+            const outputDiv = document.getElementById('highlighted-text');
+            outputDiv.innerText = answerText; 
+            
+            // AI가 텍스트만 보내주므로, 점수판 등은 고정값으로 처리하여 화면 깨짐 방지
+            document.getElementById('score-display').innerText = "AI"; 
+            document.getElementById('risk-count-badge').innerText = "분석 완료";
+            document.getElementById('score-comment').innerText = "AI 분석 결과입니다.";
         }
+
     </script>
 </body>
 </html>
-
