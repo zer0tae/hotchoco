@@ -281,8 +281,8 @@
 
     <script>
         // === 1. Server Configuration ===
-        // [중요] 여기에 나중에 Replit이나 서버 URL을 채워 넣으세요.
-        const BACKEND_BASE_URL = ""; 
+        // [중요] 현재 웹사이트의 주소를 자동으로 가져옵니다. (건드릴 필요 없음)
+const BACKEND_BASE_URL = window.location.origin; 
         const AI_URL = BACKEND_BASE_URL + "/ai";
 
         // === Knowledge Base ===
@@ -463,3 +463,4 @@
     </script>
 </body>
 </html>
+
