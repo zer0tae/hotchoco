@@ -19,9 +19,6 @@
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .risk-highlight { background-color: rgba(220, 38, 38, 0.15); border-bottom: 2px solid #dc2626; cursor: pointer; transition: all 0.2s; font-weight: 700; }
         .risk-highlight:hover { background-color: rgba(220, 38, 38, 0.3); }
-        .step-active { @apply bg-cbs-blue text-white border-cbs-blue; }
-        .step-inactive { @apply bg-white text-slate-400 border-slate-200; }
-        .step-completed { @apply bg-blue-100 text-cbs-blue border-cbs-blue; }
         .custom-checkbox:checked + div { border-color: #2563eb; background-color: #eff6ff; color: #1e40af; }
     </style>
 </head>
@@ -58,34 +55,25 @@
             </p>
         </div>
 
-        <div id="wizard-container" class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden fade-in transition-all duration-300">
-            <div class="bg-slate-50 border-b border-slate-200 px-8 py-4">
-                <div class="flex items-center justify-between relative">
-                    <div class="absolute left-0 top-1/2 transform -translate-y-1/2 w-full h-1 bg-slate-200 -z-10"></div>
-                    <div id="progress-line" class="absolute left-0 top-1/2 transform -translate-y-1/2 h-1 bg-cbs-blue transition-all duration-500 -z-0" style="width: 0%;"></div>
-                    <div class="flex flex-col items-center step-indicator" data-step="1">
-                        <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-sm bg-cbs-blue text-white border-cbs-blue z-10 transition-colors">1</div>
-                        <span class="text-xs font-bold mt-1 text-cbs-blue">기본 정보</span>
-                    </div>
-                    <div class="flex flex-col items-center step-indicator" data-step="2">
-                        <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-sm bg-white text-slate-400 border-slate-200 z-10 transition-colors">2</div>
-                        <span class="text-xs font-medium mt-1 text-slate-400">당사자/성향</span>
-                    </div>
-                    <div class="flex flex-col items-center step-indicator" data-step="3">
-                        <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-sm bg-white text-slate-400 border-slate-200 z-10 transition-colors">3</div>
-                        <span class="text-xs font-medium mt-1 text-slate-400">중점 분석</span>
-                    </div>
-                    <div class="flex flex-col items-center step-indicator" data-step="4">
-                        <div class="w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-sm bg-white text-slate-400 border-slate-200 z-10 transition-colors">4</div>
-                        <span class="text-xs font-medium mt-1 text-slate-400">문서 입력</span>
-                    </div>
-                </div>
+        <div id="form-container" class="max-w-4xl mx-auto bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden fade-in transition-all duration-300">
+            
+            <div class="bg-slate-50 border-b border-slate-200 px-8 py-6">
+                <h2 class="text-xl font-bold text-slate-800 flex items-center">
+                    <i class="fa-solid fa-clipboard-list text-cbs-blue mr-2"></i>
+                    검토 정보 입력
+                </h2>
+                <p class="text-sm text-slate-500 mt-1">정확한 분석을 위해 아래 정보를 모두 입력해주세요.</p>
             </div>
 
-            <div class="p-8 min-h-[400px]">
-                <div id="step-1" class="step-content block animate-fadeIn">
-                    <h2 class="text-2xl font-bold text-slate-800 mb-6">어떤 계약을 체결하시나요?</h2>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="p-8 space-y-12 divide-y divide-slate-100">
+                
+                <div id="section-1" class="pt-2">
+                    <div class="flex items-center mb-6">
+                        <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold flex items-center justify-center mr-3 text-sm">1</div>
+                        <h2 class="text-2xl font-bold text-slate-800">어떤 계약을 체결하시나요?</h2>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pl-0 md:pl-11">
                         <div>
                             <label class="block text-sm font-bold text-slate-600 mb-2">산업 분야 (Industry)</label>
                             <select id="industry" onchange="updateContractTypes()" class="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-cbs-blue outline-none font-medium">
@@ -121,47 +109,61 @@
                     </div>
                 </div>
 
-                <div id="step-2" class="step-content hidden animate-fadeIn">
-                    <h2 class="text-2xl font-bold text-slate-800 mb-2">누구 입장에서 검토할까요?</h2>
-                    <p class="text-slate-500 mb-6 text-sm">유불리를 판단하는 기준이 됩니다.</p>
-                    <div class="mb-8">
-                        <label class="block text-sm font-bold text-slate-600 mb-3">나의 역할 (Role)</label>
-                        <div class="grid grid-cols-2 md:grid-cols-2 gap-4">
-                            <label class="cursor-pointer">
-                                <input type="radio" name="role" value="supplier" class="hidden peer custom-checkbox" checked>
-                                <div class="p-4 rounded-xl border-2 border-slate-200 text-center hover:bg-slate-50 peer-checked:border-cbs-blue peer-checked:bg-blue-50 peer-checked:text-cbs-blue transition">
-                                    <i class="fa-solid fa-hand-holding-dollar text-2xl mb-2"></i><br>
-                                    <span class="font-bold text-sm">을 (수급인/공급자)</span>
-                                </div>
-                            </label>
-                            <label class="cursor-pointer">
-                                <input type="radio" name="role" value="buyer" class="hidden peer custom-checkbox">
-                                <div class="p-4 rounded-xl border-2 border-slate-200 text-center hover:bg-slate-50 peer-checked:border-cbs-blue peer-checked:bg-blue-50 peer-checked:text-cbs-blue transition">
-                                    <i class="fa-solid fa-money-bill-wave text-2xl mb-2"></i><br>
-                                    <span class="font-bold text-sm">갑 (발주자/구매자)</span>
-                                </div>
-                            </label>
+                <div id="section-2" class="pt-10">
+                    <div class="flex items-center mb-6">
+                        <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold flex items-center justify-center mr-3 text-sm">2</div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-800">누구 입장에서 검토할까요?</h2>
+                            <p class="text-slate-500 text-sm mt-1">유불리를 판단하는 기준이 됩니다.</p>
                         </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-bold text-slate-600 mb-3">위험 수용 성향</label>
-                        <div class="flex space-x-4">
-                            <label class="flex items-center cursor-pointer">
-                                <input type="radio" name="risk" value="conservative" class="w-5 h-5 text-cbs-blue focus:ring-cbs-blue border-gray-300" checked>
-                                <span class="ml-2 font-medium text-slate-700">보수적</span>
-                            </label>
-                            <label class="flex items-center cursor-pointer">
-                                <input type="radio" name="risk" value="balanced" class="w-5 h-5 text-cbs-blue focus:ring-cbs-blue border-gray-300">
-                                <span class="ml-2 font-medium text-slate-700">균형</span>
-                            </label>
+                    
+                    <div class="pl-0 md:pl-11">
+                        <div class="mb-8">
+                            <label class="block text-sm font-bold text-slate-600 mb-3">나의 역할 (Role)</label>
+                            <div class="grid grid-cols-2 md:grid-cols-2 gap-4">
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="role" value="supplier" class="hidden peer custom-checkbox" checked>
+                                    <div class="p-4 rounded-xl border-2 border-slate-200 text-center hover:bg-slate-50 peer-checked:border-cbs-blue peer-checked:bg-blue-50 peer-checked:text-cbs-blue transition">
+                                        <i class="fa-solid fa-hand-holding-dollar text-2xl mb-2"></i><br>
+                                        <span class="font-bold text-sm">을 (수급인/공급자)</span>
+                                    </div>
+                                </label>
+                                <label class="cursor-pointer">
+                                    <input type="radio" name="role" value="buyer" class="hidden peer custom-checkbox">
+                                    <div class="p-4 rounded-xl border-2 border-slate-200 text-center hover:bg-slate-50 peer-checked:border-cbs-blue peer-checked:bg-blue-50 peer-checked:text-cbs-blue transition">
+                                        <i class="fa-solid fa-money-bill-wave text-2xl mb-2"></i><br>
+                                        <span class="font-bold text-sm">갑 (발주자/구매자)</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-slate-600 mb-3">위험 수용 성향</label>
+                            <div class="flex space-x-4">
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="radio" name="risk" value="conservative" class="w-5 h-5 text-cbs-blue focus:ring-cbs-blue border-gray-300" checked>
+                                    <span class="ml-2 font-medium text-slate-700">보수적</span>
+                                </label>
+                                <label class="flex items-center cursor-pointer">
+                                    <input type="radio" name="risk" value="balanced" class="w-5 h-5 text-cbs-blue focus:ring-cbs-blue border-gray-300">
+                                    <span class="ml-2 font-medium text-slate-700">균형</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                <div id="step-3" class="step-content hidden animate-fadeIn">
-                    <h2 class="text-2xl font-bold text-slate-800 mb-2">중점적으로 볼 항목</h2>
-                    <p class="text-slate-500 mb-6 text-sm">선택하신 항목은 가중치를 두어 더 정밀하게 분석합니다.</p>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div id="section-3" class="pt-10">
+                    <div class="flex items-center mb-6">
+                        <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold flex items-center justify-center mr-3 text-sm">3</div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-800">중점적으로 볼 항목</h2>
+                            <p class="text-slate-500 text-sm mt-1">선택하신 항목은 가중치를 두어 더 정밀하게 분석합니다.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="pl-0 md:pl-11 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <label class="cursor-pointer">
                             <input type="checkbox" name="focus" value="money" class="hidden peer custom-checkbox" checked>
                             <div class="p-4 rounded-xl border border-slate-200 flex items-center transition hover:bg-slate-50">
@@ -193,10 +195,16 @@
                     </div>
                 </div>
 
-                <div id="step-4" class="step-content hidden animate-fadeIn">
-                    <h2 class="text-2xl font-bold text-slate-800 mb-2">분석할 계약서 입력</h2>
-                    <p class="text-slate-500 mb-6 text-sm">입력하신 텍스트를 기반으로 실제 분석을 수행합니다.</p>
-                    <div class="relative">
+                <div id="section-4" class="pt-10">
+                    <div class="flex items-center mb-6">
+                        <div class="w-8 h-8 rounded-full bg-slate-100 text-slate-600 font-bold flex items-center justify-center mr-3 text-sm">4</div>
+                        <div>
+                            <h2 class="text-2xl font-bold text-slate-800">분석할 계약서 입력</h2>
+                            <p class="text-slate-500 text-sm mt-1">입력하신 텍스트를 기반으로 실제 분석을 수행합니다.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="pl-0 md:pl-11 relative">
                         <textarea id="contract-text" class="w-full h-64 p-4 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-cbs-blue outline-none resize-none text-slate-700 text-sm leading-relaxed custom-scrollbar" placeholder="여기에 계약서 조항을 붙여넣으세요."></textarea>
                         <div class="absolute bottom-4 right-4 flex space-x-2">
                             <div class="relative group">
@@ -212,19 +220,17 @@
                         </div>
                     </div>
                 </div>
+
             </div>
 
-            <div class="bg-slate-50 p-6 border-t border-slate-200 flex justify-between items-center">
-                <button id="btn-prev" onclick="changeStep(-1)" class="px-6 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-200 disabled:opacity-30 disabled:cursor-not-allowed transition" disabled>이전</button>
-                <div id="btn-next-container">
-                    <button id="btn-next" onclick="changeStep(1)" class="px-8 py-3 rounded-xl font-bold bg-cbs-navy text-white hover:bg-slate-800 transition shadow-lg">다음 단계</button>
-                </div>
-                <div id="btn-submit-container" class="hidden">
-                    <button onclick="analyzeContract()" class="px-8 py-3 rounded-xl font-bold bg-cbs-blue text-white hover:bg-blue-600 transition shadow-lg flex items-center group">
-                        <i class="fa-solid fa-wand-magic-sparkles mr-2 group-hover:animate-pulse"></i>
-                        실시간 정밀 분석 시작
-                    </button>
-                </div>
+            <div class="bg-slate-50 p-8 border-t border-slate-200">
+                <button onclick="analyzeContract()" class="w-full py-4 rounded-xl font-black text-lg bg-cbs-blue text-white hover:bg-blue-600 transition shadow-lg flex items-center justify-center group transform hover:scale-[1.01]">
+                    <i class="fa-solid fa-wand-magic-sparkles mr-3 group-hover:animate-pulse"></i>
+                    계약서 실시간 정밀 분석 시작하기
+                </button>
+                <p class="text-center text-xs text-slate-400 mt-4">
+                    <i class="fa-solid fa-shield-halved mr-1"></i>입력하신 내용은 분석 직후 폐기되며 저장되지 않습니다.
+                </p>
             </div>
         </div>
 
@@ -293,10 +299,6 @@
             franchise: [ { val: 'new', text: '가맹 계약서 (신규)' }, { val: 'supply', text: '물품 공급 계약' }, { val: 'agent', text: '대리점/총판 계약' } ]
         };
 
-        // === UI Logic ===
-        let currentStep = 1;
-        const totalSteps = 4;
-
         window.onload = function() { updateContractTypes(); };
 
         function updateContractTypes() {
@@ -314,45 +316,7 @@
             }
         }
 
-        function changeStep(dir) {
-            const next = currentStep + dir;
-            if (next < 1 || next > totalSteps) return;
-            document.getElementById(`step-${currentStep}`).classList.add('hidden');
-            document.getElementById(`step-${currentStep}`).classList.remove('block');
-            document.getElementById(`step-${next}`).classList.remove('hidden');
-            document.getElementById(`step-${next}`).classList.add('block');
-            
-            const progress = ((next - 1) / (totalSteps - 1)) * 100;
-            document.getElementById('progress-line').style.width = `${progress}%`;
-
-            for(let i=1; i<=totalSteps; i++) {
-                const indicator = document.querySelector(`.step-indicator[data-step="${i}"] div`);
-                const label = document.querySelector(`.step-indicator[data-step="${i}"] span`);
-                if(i < next) { 
-                    indicator.className = "w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-sm bg-blue-100 text-cbs-blue border-cbs-blue transition-colors";
-                    indicator.innerHTML = '<i class="fa-solid fa-check"></i>';
-                    label.className = "text-xs font-bold mt-1 text-cbs-blue";
-                } else if(i === next) {
-                    indicator.className = "w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-sm bg-cbs-blue text-white border-cbs-blue transition-colors";
-                    indicator.innerHTML = i;
-                    label.className = "text-xs font-bold mt-1 text-cbs-blue";
-                } else {
-                    indicator.className = "w-8 h-8 rounded-full border-2 flex items-center justify-center font-bold text-sm bg-white text-slate-400 border-slate-200 transition-colors";
-                    indicator.innerHTML = i;
-                    label.className = "text-xs font-medium mt-1 text-slate-400";
-                }
-            }
-            currentStep = next;
-            document.getElementById('btn-prev').disabled = currentStep === 1;
-            if (currentStep === totalSteps) {
-                document.getElementById('btn-next-container').classList.add('hidden');
-                document.getElementById('btn-submit-container').classList.remove('hidden');
-            } else {
-                document.getElementById('btn-next-container').classList.remove('hidden');
-                document.getElementById('btn-submit-container').classList.add('hidden');
-            }
-        }
-
+        // [변경됨] Wizard Logic 삭제 (Single Page에서는 불필요)
         function pasteExample(type) {
             let text = "";
             if (type === 'construction') text = `제22조 [물가변동 배제]\n본 공사 기간 중 물가 변동으로 인하여 재료비 등이 상승하더라도 "을"은 계약금액의 증액을 청구할 수 없다.\n\n제23조 [간접비]\n발주자의 귀책 사유로 공기가 연장되더라도 현장관리비 등 간접비 증액은 인정하지 아니한다.`;
@@ -361,12 +325,13 @@
         }
         function clearText() { document.getElementById('contract-text').value = ""; }
 
-        // === 4. ANALYSIS ENGINE (Updated) ===
+        // === 4. ANALYSIS ENGINE ===
         async function analyzeContract() {
             const text = document.getElementById('contract-text').value;
             if (text.length < 10) { alert("계약서 내용을 입력해주세요."); return; }
 
-            document.getElementById('wizard-container').classList.add('hidden');
+            // [변경됨] Form Container 숨기기 (이전엔 Wizard Container)
+            document.getElementById('form-container').classList.add('hidden');
             document.getElementById('hero-section').classList.add('hidden');
             document.getElementById('loading-container').classList.remove('hidden');
 
